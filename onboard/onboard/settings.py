@@ -21,8 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open("some_key.json", "r", encoding="utf-8") as file:
-    SOME_KEY = json.load(file)["some_key"]
+with open("./onboard/some_key.json", "r", encoding="utf-8") as file:
+    SOME_KEY = json.load(file)["key"]
 
 SECRET_KEY = SOME_KEY
 

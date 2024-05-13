@@ -1,2 +1,5 @@
 .venv/
+onboard/main/migrations/__pycache__/
+onboard/main/models/__pycache__/
+onboard/onboard/__pycache__/
 onboard/onboard/some_key.json

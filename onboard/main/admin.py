@@ -1,21 +1,6 @@
 from django.contrib import admin
-from .models import *
+from .models.board import Question, Answer
 
-admin_models = [
-    UserProfile,
-    Business,
-    CateringType,
-    RetailType,
-    ServiceType,
-    CoffeeHouse,
-    Restaurant,
-    BurgerJoint,
-    BooksRetail,
-    SportRetail,
-    ClothesRetail,
-    DisignService,
-    ITService,
-    MusicService,
-]
+admin_models = [Question, Answer]
 
 admin.site.register(admin_models)

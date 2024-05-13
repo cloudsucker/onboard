@@ -20,37 +20,130 @@
     </header>
     
     <body>
+        {% csrf_token %}
         {% block content %} {% endblock %}
     </body>
 </html>
 
 <script>
-    document.querySelector('.custom-select').addEventListener('change', function() {
-        var selectedValue = this.value;
-        
-        fetch('/get-next-question/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({selected_value: selectedValue})
-        })
-        .then(response => response.json())
-        .then(data => {
-            var newQuestionDiv = document.createElement('div');
-            newQuestionDiv.classList.add('selection');
-            newQuestionDiv.innerHTML = `
-                <h2>${data.title}</h2>
-                <select name="${data.name}" class="custom-select">
-                    ${Object.entries(data.options).map(([key, value]) => `
-                        <option value="${key}">${value}</option>
-                    `).join('')}
-                </select>
-            `;
+    document.addEventListener("DOMContentLoaded", function() {
+        // Получаем CSRF токен из мета-тега
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        // Получаем все элементы <select> по их классу
+        const selectElements = document.querySelectorAll('.custom-select');
+    
+        // Добавляем обработчик события изменения для каждого элемента <select>
+        selectElements.forEach(selectElement => {
+            selectElement.addEventListener('change', function() {
+                // Получаем выбранное значение
+                const selectedValue = this.value;
+                
+                // Получаем имя выбранного элемента из атрибута name
+                const selectedName = this.name;
+    
+                console.log(selectedName, selectedValue);
+    
+                // Отправляем запрос на сервер с CSRF токеном, именем и значением выбранного элемента
+                fetch('/update_questions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        "name": selectedName,
+                        "value": selectedValue
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    updateQuestion(data, selectElement);
+                })
+                .catch(error => {
+                    console.error('There was an error!', error);
+                });
+            });
+        });
+    
+        function updateQuestion(questionHTML, selectElement) {
+            // Находим родительский элемент, куда будем добавлять или обновлять вопрос
+            let parentElement = document.getElementById('survey-board');
             
-            document.body.appendChild(newQuestionDiv);
-        })
-        .catch(error => console.error('Error:', error));
+            // Создаем временный элемент для парсинга HTML
+            let tempElement = document.createElement('div');
+            tempElement.innerHTML = questionHTML;
+            console.log(tempElement.innerHTML);
+            
+            // Находим элемент с вопросом во временном элементе
+            let questionElement = tempElement.querySelector('.selection');
+            
+            // Удаляем все последующие вопросы
+            let nextQuestionElement = selectElement.parentElement.nextElementSibling;
+            while (nextQuestionElement) {
+                let currentNextQuestion = nextQuestionElement;
+                nextQuestionElement = currentNextQuestion.nextElementSibling;
+                parentElement.removeChild(currentNextQuestion);
+            }
+    
+            // Добавляем обработчик события изменения для нового элемента <select>
+            questionElement.querySelector('.custom-select').addEventListener('change', function() {
+                const selectedValue = this.value;
+                const selectedName = this.name;
+                
+                console.log(selectedName, selectedValue);
+                
+                fetch('/update_questions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        "name": selectedName,
+                        "value": selectedValue
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    updateQuestion(data, this);
+                })
+                .catch(error => {
+                    console.error('There was an error!', error);
+                });
+            });
+    
+            // Находим кнопку отправки формы во временном элементе
+            let submitButton = tempElement.querySelector('a.submit-button');
+
+            console.log('Submit button:', submitButton);
+            if (submitButton) {
+                // Добавляем обработчик события для кнопки отправки формы
+                submitButton.addEventListener('click', function(event) {
+                    // Отправка формы или выполнение других действий
+                    console.log('Submit button clicked!');
+                });
+            }
+    
+            // Если следующий вопрос существует на странице и он не текущий вопрос,
+            // заменяем его
+            if (nextQuestionElement) {
+                // Заменяем следующий вопрос новым
+                parentElement.replaceChild(questionElement, nextQuestionElement);
+            } else {
+                // Если следующего вопроса нет на странице, добавляем его в конец родительского элемента
+                parentElement.appendChild(questionElement);
+            }
+        }
     });
 </script>

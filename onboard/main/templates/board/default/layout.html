@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        
+        <link rel="stylesheet" href="{% static 'board/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'board/css/selections.css' %}">
+        
+        <title>{% block title %} {% endblock %}</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    </head>
+
+    <header>
+        {% block header %} {% endblock %}
+    </header>
+    
+    <body>
+        {% block content %} {% endblock %}
+    </body>
+</html>
+
+<script>
+    document.querySelector('.custom-select').addEventListener('change', function() {
+        var selectedValue = this.value;
+        
+        fetch('/get-next-question/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({selected_value: selectedValue})
+        })
+        .then(response => response.json())
+        .then(data => {
+            var newQuestionDiv = document.createElement('div');
+            newQuestionDiv.classList.add('selection');
+            newQuestionDiv.innerHTML = `
+                <h2>${data.title}</h2>
+                <select name="${data.name}" class="custom-select">
+                    ${Object.entries(data.options).map(([key, value]) => `
+                        <option value="${key}">${value}</option>
+                    `).join('')}
+                </select>
+            `;
+            
+            document.body.appendChild(newQuestionDiv);
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>

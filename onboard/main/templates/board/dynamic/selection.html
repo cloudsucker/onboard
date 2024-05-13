@@ -1,0 +1,8 @@
+<div class="selection">
+    <h2>{{ title }}</h2>
+    <select name="{{ name }}" class="custom-select">
+        {% for key, value in options.items %}
+            <option value="{{ key }}"> {{ value }} </option>
+        {% endfor %}
+    </select>
+</div>

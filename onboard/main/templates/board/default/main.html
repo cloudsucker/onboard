@@ -1,0 +1,15 @@
+{% extends 'board/default/layout.html' %}
+
+{% block title %} Расскажите о своём бизнесе {% endblock %} 
+
+{% block header %}
+<div>
+    <h1> Расскажите нам о своём бизнесе </h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="survey-board">
+        {% include 'board/dynamic/selection.html' %}
+    </div>
+{% endblock %}

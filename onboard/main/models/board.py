@@ -22,11 +22,16 @@ class Question(models.Model):
     depends_on = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
+    depends_key = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
+        # return (
+        #     f"{str(self.order)}. " + self.title + f"{f' ({str(self.depends_on.order) + ". " + str(self.depends_on.title)} - {self.depends_key if self.depends_key else 'ANY'})' if self.depends_on
+        #     else ""}"
+        # )
+    
         return (
-            f"{str(self.order)}. " + self.title + f"{f' ({str(self.depends_on.order) + ". " + str(self.depends_on.title)})' if self.depends_on
-            else ""}"
+            f"{f'[{str(self.depends_on.order) + ". " + str(self.depends_on.title)}: "{self.depends_key if self.depends_key else 'ANY'}"] ' if self.depends_on else ""}" + f"{str(self.order)}. " + self.title
         )
     
     class Meta:

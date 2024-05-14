@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models.board import Question
+from django.db.models import Q
 import json
 
 
@@ -9,11 +10,6 @@ def main(request):
 
 
 def onboard(request):
-    """
-    Подгружает первый по очерёдности вопрос при переходе
-    на страницу опроса.
-    """
-
     first_question = Question.objects.order_by("order").first()
 
     if first_question:
@@ -29,8 +25,10 @@ def onboard(request):
 
 
 def update_questions(request):
-    data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required"}, status=400)
 
+    data = json.loads(request.body)
     question_name = data.get("name")
     user_answer = data.get("value")
 
@@ -41,7 +39,8 @@ def update_questions(request):
 
     # Ищем связанные вопросы
     matching_questions = Question.objects.filter(
-        name=user_answer, depends_on__name=question_name
+        depends_on__name=question_name,
+        depends_key=user_answer,
     )
 
     for matching_question in matching_questions:
@@ -57,9 +56,22 @@ def update_questions(request):
     if next_questions:
         return render(request, "board/dynamic/selection.html", next_questions[0])
 
-    # Если связанных вопросов нет, ищем следующие по порядку вопросы
+    # Если связанных вопросов нет, ищем следующие по порядку вопросы по нашей ветке
     current_question = Question.objects.get(name=question_name)
-    next_order_questions = Question.objects.filter(order__gt=current_question.order)
+    next_order_questions = Question.objects.filter(
+        (
+            (
+                Q(depends_key__isnull=True)
+                & Q(depends_on__name=question_name)
+                & Q(order__gt=current_question.order)
+            )
+            | (
+                Q(order__gt=current_question.order)
+                & Q(depends_key__isnull=True)
+                & Q(depends_on__isnull=True)
+            )
+        )
+    )
 
     for next_question in next_order_questions:
         question_data = {

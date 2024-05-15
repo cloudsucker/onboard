@@ -123,3 +123,12 @@ def __str__(self):
 <p align="center">
   <img src="static/questions_pairing.png" alt="django_admin">
 </p>
+
+### 📚 **Используемые библиотеки**
+
+-   **Django >= 5.0.6**
+-   **pip-tools >= 7.4.1**
+
+### 📬 **Обратная связь**
+
+По всем вопросам: **ferjenkill@gmail.com**
